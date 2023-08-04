@@ -1,0 +1,19 @@
+# get the current default subscription using show
+az account show --output table
+
+#change to required subscription 
+az account set --subscription "Pay-As-You-Go-2"
+
+# connect kubectl with AKS
+az aks get-credentials --resource-group rg-kub --name kub108
+
+
+#To check which Kubernetes releases are available for your cluster, use the az aks get-upgrades command. 
+az aks get-upgrades --resource-group rg-kub --name kub108 --output table
+
+#Upgrade an AKS cluster
+az aks upgrade \
+    --resource-group rg-kub \
+    --name kub108 \
+    --kubernetes-version KUBERNETES_VERSION
+	

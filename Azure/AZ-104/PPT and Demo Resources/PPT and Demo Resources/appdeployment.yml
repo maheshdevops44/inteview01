@@ -1,0 +1,25 @@
+apiVersion: 2019-12-01
+location: South Central US
+name: AppGroup
+properties:
+  containers: 
+  - name: app
+    properties:
+      image: myregis108.azurecr.io/myapp:latest
+      resources:
+        requests:
+          cpu: 1
+          memoryInGb: 1.5
+      ports:
+      - port: 80   
+  osType: Linux
+  ipAddress:
+    type: Public
+    ports:
+    - protocol: tcp
+      port: 80    
+  imageRegistryCredentials:
+    - server: myregis108.azurecr.io
+      username: myregis108
+      password: clJ/M8KOYZy1o/cPHlgRkriinWOqiaDH
+type: Microsoft.ContainerInstance/containerGroups

@@ -1,0 +1,20 @@
+https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/
+
+search in (Event) "Error"
+| sort by TimeGenerated desc 
+
+Event 
+| where EventLevelName has 'Error'
+
+Event 
+| where Computer has 'vm-004-west'
+| take 10
+
+Event 
+| where Computer has 'vm-004-west' and EventLog has 'Application'
+| top 10 by TimeGenerated
+| project TimeGenerated, Computer, EventLevel
+
+Event
+| summarize count() by Computer
+

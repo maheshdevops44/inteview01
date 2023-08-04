@@ -1,0 +1,6 @@
+﻿version:v1.0,,,,,,,,,,,,,,,,
+Name [displayName] Required,User name [userPrincipalName] Required,Initial password [passwordProfile] Required,Block sign in (Yes/No) [accountEnabled] Required,First name [givenName],Last name [surname],Job title [jobTitle],Department [department],Usage location [usageLocation],Street address [streetAddress],State or province [state],Country or region [country],Office [physicalDeliveryOfficeName],City [city],ZIP or postal code [postalCode],Office phone [telephoneNumber],Mobile phone [mobile]
+Demo User11,demouser11@learncloudgitagmail.onmicrosoft.com, myPassword1234, No,,,,,,,,,,,,,
+Demo User12,demouser12@learncloudgitagmail.onmicrosoft.com, myPassword1235, No,,,,,,,,,,,,,
+Demo User13,demouser13@learncloudgitagmail.onmicrosoft.com, myPassword1236, No,,,,,,,,,,,,,
+Demo User14,demouser14@learncloudgitagmail.onmicrosoft.com, myPassword1237, No,,,,,,,,,,,,,

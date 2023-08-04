@@ -1,0 +1,42 @@
+
+
+# login in to azure
+az login
+
+# sign in with a different tenant
+az login --tenant <myTenantID>
+
+# get all subscription
+az account list
+az account list --output table
+
+# get the current default subscription using show
+az account show
+az account show --output table
+
+# change the active subscription using the subscription name
+az account set --subscription "a5c72a04-9ffb-48a3-bab7-3422bf2929b5"
+
+
+# To create a resource group, use az group create..
+    az group create --name exampleGroup --location westus
+
+
+# List resource groups
+    az group list --output table
+
+# Deploy resources
+# The following example creates a storage account. The name you provide for the storage account must be unique across Azure.
+    az storage account create --resource-group exampleGroup --name examplestore108 --location westus --sku Standard_LRS --kind StorageV2
+
+# Lock resource group   
+    az lock create --name LockGroup --lock-type CanNotDelete --resource-group exampleGroup
+
+# To get the locks for a resource group, use Get-AzResourceLock.
+    az lock list --resource-group exampleGroup
+
+# To delete a lock, use az lock delete
+    az lock delete --name LockGroup --resource-group exampleGroup
+    
+# Delete resource groups
+    az group delete --name exampleGroup

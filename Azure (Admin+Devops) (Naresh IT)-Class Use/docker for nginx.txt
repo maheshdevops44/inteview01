@@ -1,0 +1,22 @@
+1.docker run -it --rm -d -p 8080:80 --name web nginx
+1.1 access the application(http://20.127.138.182:8080/)
+2.docker stop web
+3.Create a directory named site-content. In this directory add an index.html file and add the following html to it:
+4.vi index.html and add the following code.
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Docker Nginx</title>
+</head>
+<body>
+  <h2>Hello from Nginx container</h2>
+</body>
+</html>
+5.In the same directory, create a file named Dockerfile and paste the below commands.
+vi Dockerfile and add the following docker file.
+
+FROM nginx:latest
+COPY ./index.html /usr/share/nginx/html/index.html
+
+6.docker run -it --rm -d -p 8080:80 --name web -v ~/site-content:/usr/share/nginx/html nginx

@@ -1,0 +1,3008 @@
+Day-Day Task:
+------------
+* Attending a standup meeting i.e Kanban or Scrum
+* Create JIRA/Bugzilla tickets to track all the work
+* Using git client to store the files
+* Code review for peers
+
+Respobilities:
+-------------
+* Support Continous Development
+  1. Support Gitlab maintenance - group,project,user,branches management
+
+Merge:
+ 1. raise a merge request
+ 2. review
+ 3. accept the merge
+
+Dev Build:
+ - done by developers
+ - on his workspace
+ - builds only the files he/she modified
+ - used for running unit test
+
+nightly Build:
+ - automated builds
+ - separate infra
+ - full build
+ - used for smokes test and functional test
+
+
+Git client - Gitlab (server)
+
+https://gitlab.com/scmlearningcentre/Ansible.git
+git@gitlab.com:scmlearningcentre/Ansible.git
+
+$ git clone https://gitlab.com/scmlearningcentre/Ansible.git testworkspace
+  - the gitlab username/password
+$ git clone git@gitlab.com:scmlearningcentre/Ansible.git testworkspace
+  - the ssh keys (do not ask password)
+
+Permissions:
+ - guest: read-only
+ - developer: read-write
+ - maintainer: read-write + manage the group/project
+ - owner: administration privilege
+=============DOCKER=============
+$ sudo su
+$ apt update
+$ apt install -y docker.io
+$ systemctl status docker
+$ docker info
+
+$ docker run --name <ContainerName> -it|-d <Image> <StartupCMD>
+ - Check for the Image on local host
+ - Download the Image from Docker registry
+ - Create a new container, unique ID
+ - Starts the container
+ - Attach the host terminal to container interactively
+ - Runs the startup cmd
+
+$ docker ps -a
+$ docker start <ContainerID/Name>
+$ docker attach <ContainerID/Name>
+$ docker stop <ContainerID/Name>
+$ docker rm <ContainerID/Name>
+$ docker logs -f <ContainerID/Name>
+$ docker exec <ContainerID/Name> <CMD>
+$ docker stats
+
+Examples:
+$ docker run -it centos
+$ docker run --name test00 -it centos
+$ docker run --name test00 -it centos /bin/sh
+$ docker run --name testd -d centos /bin/sh -c "while true; do echo hello Adam; sleep 5; done"
+$ docker exec testd yum -y update
+$ docker exec -it testd /bin/bash
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+$ docker run -d --name <Cname> -p <HostPort>:<ContainerPort> -v <HD>:<CD> <Image> <FirstCMD>
+
+$ docker run --name myapache -d -p 80:80 httpd
+$ netstat -an |grep 80
+$ curl localhost:80
+$ docker run --name mynginx -d -p 8081:80 nginx
+$ docker run --name myjenkins -d -p 8080:8080 jenkins/jenkins
+$ docker run --name c1 -it -v /tmp/host:/tmp/cont -v /tmp/host2:/tmp/cont2 centos /bin/bash
+===================================================================================================
+Assignment 1:
+------------
+* Totally am developing 3 features in a product, Release 1 with 2 features and Release 2 with single
+  feature
+* Create a branching structure where i can do parallel development for each release & i can do parallel
+  release
+  - i should be able to combine both Release 1 & 2, do a full Release
+
+scmlearningcentre@gmail.com - developer access to only feature branches
+selva4ever@gmail.com - maintainer access
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+=====================================================TERRAFORM=========================
+ $ curl -O https://releases.hashicorp.com/terraform/0.13.0/terraform_0.13.0_linux_amd64.zip
+ $ apt install -y unzip
+ $ unzip terraform_0.13.0_linux_amd64.zip -d /usr/local/bin/
+ $ terraform version
+
+$ mkdir -p terraform/doc
+$ cd terraform/doc
+$ vi main.tf
+
+# Specify the Docker host
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+}
+
+# Download the latest Centos image
+resource "docker_image" "myimg" {
+  name = "centos:latest"
+}
+
+Terraform Workflow
+------------------
+$ terraform 0.13upgrade .
+$ terraform init
+$ terraform validate
+$ terraform plan
+  + indicates resource creation
+  - indicates resource deletion
+  +/- indicates resource recreation
+$ terraform apply -auto-approve
+$ terraform show
+$ terraform destroy
+
+# Specify the Docker host
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+  #host = "ssh://user@remote-host:22"
+  #host = "tcp://127.0.0.1:2376/"
+}
+-----------------------------
+# Specify the Docker Image
+resource "docker_image" "myimg" {
+  name = "nginx"
+}
+# Start the Container
+resource "docker_container" "mycontainer" {
+  name  = "testng"
+  image = docker_image.myimg.latest
+  ports {
+    internal = "80"
+    external = "80"
+  }
+}
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$ terraform taint <PROVIDER_RESOURCETYPE.RESOURCENAME>
+$ terraform taint docker_container.mycontainer
+---------------------
+# Specify the AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# Specify the EC2 details
+resource "aws_instance" "example" {
+  ami           = "ami-0c1a7f89451184c8b"
+  instance_type = "t2.micro"
+}
+---------------------
+export AWS_ACCESS_KEY_ID=(your access key id)
+export AWS_SECRET_ACCESS_KEY=(your secret access key)
+---------------------Parallel Execution-----
+# Specify the AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# Specify the EC2 details
+resource "aws_instance" "example" {
+  ami           = "ami-0c1a7f89451184c8b"
+  instance_type = "t2.micro"
+}
+resource "aws_s3_bucket" "example" {
+  # NOTE: S3 bucket names must be unique across _all_ AWS accounts
+  bucket = "wezva-adam-demo-s3"
+}
+-------------------Implicit dependency----
+# Specify the AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# Specify the EC2 details
+resource "aws_instance" "example" {
+  ami           = "ami-0c1a7f89451184c8b"
+  instance_type = "t2.micro"
+}
+
+resource "aws_eip" "ip" {
+  instance = aws_instance.example.id
+}
+------------------Explicit dependency-----
+# Specify the AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# Specify the EC2 details
+resource "aws_instance" "example" {
+  ami           = "ami-0c1a7f89451184c8b"
+  instance_type = "t2.micro"
+}
+resource "aws_s3_bucket" "example" {
+  # NOTE: S3 bucket names must be unique across _all_ AWS accounts
+  bucket = "wezva-adam-demo-s3"
+  depends_on = [aws_instance.example]
+}
+------------------Variable-----------
+variable "image_name" {
+  description = "Image for container."
+  default     = "nginx:latest"
+}
+
+variable "container_name" {
+  default     = "noname"
+}
+
+# Download the latest Nginx Image
+resource "docker_image" "myimage" {
+  name = var.image_name
+}
+
+# Start the Container
+resource "docker_container" "mycontainer" {
+  name  = var.container_name
+  image = docker_image.myimage.latest
+  ports {
+    internal = "80"
+    external = "80"
+  }
+}
+
+$ terraform plan -var "image_name=httpd:latest"
+$ terraform apply -var "image_name=httpd:latest" -auto-approve
+$ terraform destroy -var "image_name=httpd:latest"
+
+$ terraform plan -var-file="file.tfvars"
+$ terraform apply -var-file="file.tfvars"
+$ terraform destroy -var-file="file.tfvars"
+   container_name = "NEW"
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+------------------------LIST-------------
+variable "image_name" {
+  type = list
+  default     = ["nginx:latest", "httpd:latest"]
+}
+
+variable "container_name" {
+  default     = "noname"
+}
+
+variable "index" {
+  default = "0"
+}
+
+# Download the latest Nginx Image
+resource "docker_image" "myimage" {
+  name = var.image_name[var.index]
+}
+
+# Start the Container
+resource "docker_container" "mycontainer" {
+  name  = var.container_name
+  image = docker_image.myimage.latest
+  ports {
+    internal = "80"
+    external = "80"
+  }
+}
+
+$ terraform plan -var "index=1"
+
+------------------------MAP-------------
+variable "image_name" {
+    type = map
+    default = {
+        "test"  = "nginx:latest"
+        "prod" = "httpd:latest"
+    }
+}
+
+variable "container_name" {
+  default     = "noname"
+}
+
+# Download the latest Nginx Image
+resource "docker_image" "myimage" {
+  name = var.image_name["test"]
+}
+
+# Start the Container
+resource "docker_container" "mycontainer" {
+  name  = var.container_name
+  image = docker_image.myimage.latest
+  ports {
+    internal = "80"
+    external = "80"
+  }
+}
+---------------OUTPUT------------
+output "ip_address" {
+  value       = docker_container.mycontainer.ip_address
+  description = "The IP for the container."
+}
+
+#Output the Name of the Container
+output "container_name" {
+  value       = docker_container.mycontainer.name
+  description = "The name of the container."
+}
+------------------DATA SOURCE-------
+provider "aws" {
+  region = "ap-south-1"
+}
+
+data "aws_availability_zones" "example" {
+    state = "available"
+}
+
+output "azlist" {
+    value = data.aws_availability_zones.example.names[0]
+}
+------------------------------------
+provider "aws" {
+  region = "ap-south-1"
+}
+
+data "aws_instances" "test" {
+  filter {
+    name = "instance.group-id"
+    values = ["sg-cbbe17b1"]
+  }
+  filter {
+    name = "instance-type"
+    values = ["t2.micro","t2.small"]
+  }
+
+  instance_state_names = ["running", "stopped"]
+}
+
+output "ec2list" {
+    value = data.aws_instances.test.ids[0]
+}
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+----------------------------STATE FILE-----------------
+$ terraform destroy -target <ResourceType.Name.id[index]>
+
+terraform{
+  backend "s3" {
+     bucket = "wezvatech-adam-demo-s3"
+key = "default/terraform.tfstate" # path & file which will hold the state #
+region = "ap-south-1"
+  }
+}
+----------WORKSPACE-------
+$ terraform workspace show
+$ terraform workspace list
+$ terraform workspace new test
+$ terraform workspace select test
+$ terraform workspace delete test
+---------------------MODULES-------------
+$ mkdir modulex
+$ cd modulex
+$ touch main.tf variables.tf
+$ mkdir modules
+$ cd modules
+$ mkdir image container
+
+--image module--
+$ cd image
+$ vi main.tf
+resource "docker_image" "myimage" {
+  name = var.image_name
+}
+
+$ vi variables.tf
+variable "image_name" {
+  default = "nginx:latest"
+}
+
+$ vi outputs.tf
+output "image_out" {
+  value       = docker_image.myimage.latest
+}
+
+--container module---
+$ cd module/container
+$ vi main.tf
+resource "docker_container" "container_id" {
+  name = var.container_name
+  image = var.image_name
+  ports {
+    internal = 80
+    external = 80
+  }
+}
+ 
+$ vi variables.tf
+variable "container_name" {
+   default = "noname"
+}
+variable "image_name" {}
+--root module--
+$ vi main.tf
+# Download the image
+module "image" {
+  source = "./modules/image"
+  image_name = var.rootimage_name
+}
+
+# Start the container
+module "container" {
+  source             = "./modules/container"
+  image_name         = module.image.image_out  # module.modulename.outputvariablename
+  container_name     = var.rootcontainer_name
+}
+
+$ vi variables.tf
+variable "rootimage_name" {
+   default = "httpd:latest"
+}
+varible "rootcontainer_name" {
+   default = "wezvatech"
+}
+
+$ terraform plan -var "rootimage_name=jenkins" -var "rootcontainer_name=adam"
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$ terraform console
+max(1,31,12)
+upper("hello")
+split("a", "tomato")
+substr("hello world", 1, 4)
+index(["a", "b", "c"], "b")
+length("adam")
+length(["a", "b"])
+lookup({a="1", b="2"}, "a", "novalue")
+-------------------LOOPS-----------------
+#AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+#Create single user
+resource "aws_iam_user" "example" {
+  name = "adam"
+}
+----------
+#Create multiple users
+variable "user_names" {
+  description = "Create IAM users with these names"
+  default     = ["karthick","yashwanth","sagar","matt","balkar"]
+}
+
+#AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+#Create single user
+resource "aws_iam_user" "example" {
+  count = length(var.user_names)
+  name  = var.user_names[count.index]
+}
+
+output "user_uniqueid" {
+  value       = aws_iam_user.example[0].unique_id
+}
+-------for_each loop-------
+#Create multiple users
+variable "user_names" {
+  description = "Create IAM users with these names"
+  default     = ["naveen","glovis","robin","om","palani"]
+}
+
+#AWS details
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_iam_user" "example" {
+  for_each = toset(var.user_names)
+  name     = each.value
+}
+
+output "user_uniqueid" {
+  value       = aws_iam_user.example["robin"].unique_id
+}
+--------------------------CONDITIONS----------
+provider "aws" {
+  region = "ap-south-1"
+}
+
+variable "enable_usercreation" {
+  description = "enable or disable user creation"
+}
+
+resource "aws_iam_user" "example" {
+  count = var.enable_usercreation ? 1 : 0
+  name = "adam"
+}
+
+$ terraform plan -var "enable_usercreation=0"
+--------------------------IMPORT-------------
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# Specify the EC2 details
+resource "aws_instance" "example" {
+  ami           = "ami-0c1a7f89451184c8b"
+  instance_type = "t2.micro"
+  count = 2
+}
+
+$ terraform import aws_instance.example[1] i-055df9b5358c1f045
+
+$ terraform detroy -target aws_instance.example[0]
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+----------------------PROVISIONER------------
+resource {
+  provisioner {
+   # creation time
+  }
+  provisioner {
+   when = destroy
+   # destroy time
+  }
+}
+
+creation time provisioner: first resource creation - invoke the provisioner at the end
+destroy time provisioner: invoke the provisioner first - destroy the resource at the end
+
+---- LOCAL_EXEC PROVISIONER-----
+provider "aws" {
+  region = "ap-south-1"
+}
+
+# Specify the EC2 details
+resource "aws_instance" "example" {
+  ami           = "ami-0b99c7725b9484f9e"
+  instance_type = "t2.micro"
+ 
+  # local-exec provisioner
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.example.private_ip} >> private_ips.txt"
+  }
+
+  provisioner "local-exec" {
+    command = "exit 1"
+    on_failure = continue
+  }
+
+ # local-exec provisioner to invoke while machine is destroyed
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm private_ips.txt"
+  }
+
+}
+-----------FILE provisioner-----
+resource "aws_instance" "example" {
+  ami           = "ami-0b99c7725b9484f9e"
+  instance_type = "t2.micro"
+  key_name      = "master"
+
+  provisioner "file" {
+    source      = "test.conf"
+    destination = "/tmp/myapp.conf"
+  }
+
+  connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    private_key = file("master.pem")
+    host     = self.public_ip
+  }
+}
+---------REMOTE-EXEC PROVISIONER-----
+  provisioner "local-exec" {
+    command    = "echo 'while true; do echo hi-students; sleep 5; done' > myscript.sh"
+  }
+ 
+  provisioner "file" {
+    source      = "myscript.sh"
+    destination = "/tmp/myscript.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/myscript.sh",
+      "/tmp/myscript.sh 2>&1 &",
+    ]
+  }
+---------NULL RESOURCE------
+resource "null_resource" "cluster" {
+  provisioner "local-exec" {
+    command = "echo hello > test.txt"
+  }
+  provisioner "local-exec" {
+    when = destroy
+    command = "rm test.txt"
+  }
+}
+
+$ export TF_LOG=TRACE
+$ export TF_LOG_PATH=terraformlog.txt
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Install AWS Cli
+ $ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+ $ sudo apt install unzip && unzip awscliv2.zip
+ $ sudo ./aws/install --bin-dir /usr/bin --install-dir /usr/bin/aws-cli --update
+ $ aws --version
+
+Configure AWS Cli with Access/Secret Key
+ $ aws configure
+
+- creates ~/.aws/credentials file
+-----------
+provider "aws" {
+  region = "ap-south-1"
+  profile = "QA"    # Access/Secret Key rereferred from ~/.aws/credentials #
+  alias = "mumbai"
+}
+
+provider "aws" {
+  alias  = "virginia"               # Alias name for reference #
+  region = "us-east-1"
+  profile = "QA"
+}
+resource "aws_instance" "example" {
+  ami           = "ami-0742b4e673072066f"
+  instance_type = "t2.micro"
+  provider = aws.mumbai                                # Alias name to pick the provider #
+}
+resource "aws_instance" "example" {
+  ami           = "ami-0742b4e673072066f"
+  instance_type = "t2.micro"
+  provider = aws.virginia                                # Alias name to pick the provider #
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+YAML/YML
+========
+---
+- key1: value
+  key2: value
+  key3:
+   key3.1: value
+   key3.2: value
+    key3.2.1: value
+   key3.3: value
+- key22: value
+  key33: value
+  key44:
+   - keys4.1: value
+     keys4.2: value
+   - keys4.3: value
+     keys4.4: value
+
+Ansible Master-Node Setup
+-------------------------
+Master Machine:
+$ apt update
+$ apt install -y ansible
+
+$ vi hosts
+[groupname]
+<alias-name> <IP/FQDN> <USER> <PASSWD>
+<MachineName> ansible_host=<<ec2-private-ip>> ansible_user=<<ec2-user>> ansible_ssh_private_key_file=/location/of/the/keypair/your-key.pem
+
+[demo]
+node1 ansible_host=172.31.35.52 ansible_user=ubuntu ansible_ssh_private_key_file=/etc/ansible/master.pem
+
+[local]
+master ansible_host=172.31.42.167 ansible_user=ubuntu ansible_ssh_private_key_file=/etc/ansible/master.pem
+
+Node Machine:
+$ apt update
+$ apt install -y python3
+
+Verify:
+$ ansible node1 -m ping
+$ ansible master -m ping
+
+ADHOC CMDS
+----------
+$ ansible <host> -b -m <module> -a <arbituary options|OS Cmds >
+ Host - Machine | Group | All
+ Arbituary Options - state
+$ ansible demo --list-hosts
+$ ansible demo -m copy -a "src=test.txt dest=/tmp/test.txt"
+$ ansible demo -m copy -a "src=test.txt dest=test.txt"
+$ ansible demo -b -m apt -a "name=git  state=present"
+                                          present|absent|latest
+$ ansible demo -b -m apt -a "name=apache2 state=present"
+$ ansible demo -b -m service -a "name=apache2 state=started"
+                                          started|stopped|restarted
+$ ansible demo -b -m user -a "name=adam state=present"
+$ ansible demo -m command -a "ls"
+$ ansible demo -m shell -a "ls | wc -l"
+
+Assignment 2:
+Develop a Terraform module to create a EC2 machine, with parameters for AMI, Type, Key
+Post machine creation run
+Post machine creation, execute a script to add the machine details into inventory file on Ansible Host
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+PLAYBOOK
+--------
+Syntax:
+--- # this will be a comment
+- hosts: <host>
+  become: <yes|no>               # no is default
+  connection: <ssh|winrm|local>  # ssh is default
+  become_user: <username>        # user in the inventory is default
+  gather_facts: <yes|no>         # no is default
+  vars:
+   - <variablename>: value
+   - <variablename>: value       # to retrive '{{variablename}}'
+  tasks:
+   - name: <name for your task1>
+     <module>: <artibutary options>
+   - name: <name for your task2>
+     <module>: <artibutary options>
+     notify: <name for your task to handle>
+  handlers:
+   - name: <name for your task to handle>
+     <module>: <artibutary options>
+
+Example:
+---
+- hosts: demo
+  become: yes
+  tasks:
+   - name: Install Git
+     apt: name=git state=present
+   - name: Install Apache2
+     apt: name=apache2 state=present
+   - name: Run Apache2
+     service: name=apache2 state=started
+
+$ ansible-playbook 1.yml --check
+$ ansible-playbook 1.yml
+
+---
+- hosts: demo
+  become: yes
+  tasks:
+   - name: Install Git
+     apt: name=git state=present
+   - name: Install Apache2
+     apt: name=apache2 state=present
+     notify: Run Apache2
+   - name: Print Hi
+     command: echo Hi
+     notify: Run Apache2
+  handlers:
+   - name: Run Apache2
+     service: name=apache2 state=started
+=========LOCAL VARIABLES===============
+---
+- hosts: demo
+  become: yes
+  vars:
+   - mypkg: apache2
+  tasks:
+   - name: Install Git
+     apt: name=git state=present
+   - name: Install Apache2
+     apt: name={{mypkg}} state=present
+   - name: Run Apache2
+     service: name={{mypkg}} state=started
+
+$ ansible-playbook vars.yml -v
+
+---
+- hosts: demo
+  become: yes
+  vars:
+   - myname: ADAM
+  tasks:
+   - name: Print Name
+     command: echo {{myname}}
+
+$ ansible-playbook vars.yml --extra-vars "myname=WEZVATECH" -v
+
+---
+- hosts: demo
+  become: yes
+  vars_files:
+   - myvars.yml
+  tasks:
+   - name: Print Name
+     command: echo {{myname}}
+
+--- #myvars.yml
+myname: ADAM
+================GLOBAL VARIABLES========
+$ mkdir /etc/ansible/group_vars
+$ cd /etc/ansible/group_vars
+$ touch demo local
+$ vi demo
+---
+myname: DEMOGROUP
+
+$ vi local
+---
+myname: LOCALGROUP
+
+$ mkdir /etc/ansible/host_vars
+$ cd /etc/ansible/host_vars
+$ touch node1 master
+$ vi node1
+---
+myname: NODE1
+
+$ vi master
+---
+myname: MASTER
+
+1. runtime variable
+2. local variable
+3. host variable
+4. group variable
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+------------------REGISTER-----------------
+---
+- hosts: demo
+  become: yes
+  task:
+  - name: Print Name
+    command: echo hi
+    register: output    # any string can be given as variable name
+  - debug: var=output.rc
+  - debug: var=output.stdout
+----------------ASYNC---------
+demo group:
+ node1
+ node2
+
+task1:
+ - node1 X items
+ - node2 X items
+task2
+ - node1
+ - node2
+
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: Sleep
+    command: sleep 30
+    async: 30         # timeout in sec
+    poll: 10          # poll time in sec
+  - name: EOT
+    command: echo EOT
+-------------RUN ONCE---
+---
+- hosts: all
+  tasks:
+  - name: Print
+    command: echo Hi-Adam
+    run_once: true
+    delegate_to: master
+  - name: EOT
+    command: echo EOT
+
+-------------LOOPS-----
+
+---
+- hosts: demo
+  become: yes
+  tasks:
+  - name: Create User
+    user: name={{item}} state=present
+    with_items:
+      - Robin
+      - Balkar
+      - Om
+      - Karthick
+      - Harshitha
+===========
+--- # Loop Playbook
+- hosts: demo
+  become: yes
+  tasks:
+    - name: add a list of users
+      user: name={{ item.name }} groups={{ item.groups }}  state=present
+      with_items:
+        - { name: testuser1, groups: nogroup }
+        - { name: testuser2, groups: root }
+============
+---
+- hosts: demo
+  tasks:
+   - debug:
+        msg: "{{ item }}"
+     with_file:
+       - myfile
+       - myfile2
+=====================CONDITIONS==============
+--- # When playbook example
+- hosts: demo
+  become: yes
+  vars:
+    myvalue: false
+  tasks:
+    - name: Install apache for Debian
+      apt: name=apache2 state=present
+      when: ansible_os_family == "Debian"
+    - name: Install apache for Redhat
+      yum: name=httpd state=present
+      when: ansible_os_family == "RedHat"
+    - name: print numbers greater than 5
+      command: echo {{ item }}
+      with_items: [ 0, 2, 4, 6, 8, 10 ]
+      when: item > 5
+    - name: Boolean true
+      command: echo true
+      when: myvalue
+    - name: Boolean false
+      command: echo false
+      when: not myvalue
+===================
+---
+- hosts: demo
+  tasks:
+  - name: get stats
+    stat: path=/tmp/thefile
+    register: st
+  - debug: var=st
+  - name: Create file if it doesnt exist
+    shell: touch /tmp/thefile
+    when: not st.stat.exists
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+======================ERROR HANDLING==========
+---
+- hosts: demo
+  tasks:
+  - name: dummy cmd
+    command: nosuchcommand
+    ignore_errors: yes
+  - name: EOT
+    command: echo EOT
+--------------------------------------
+---
+- hosts: demo
+  tasks:
+  - name: Fail task when the command error output prints FAILED
+    command: /usr/bin/example-command
+    register: command_result
+    ignore_errors: yes
+  - debug: var=command_result
+  - name: fail the play if the previous command did not succeed
+    fail: msg="the command failed"
+    when: "'Err' in command_result.msg" and command_result.rc > 2
+  - name: Fail task when both files are identical
+    command: diff file1 file2   # checks the files in the home dir of the user
+    register: diff_cmd
+    failed_when: diff_cmd.rc == 2
+  - debug: var=diff_cmd
+  - name: EOT
+    command: echo EOT
+------------------------JINJA TEMPLATES---------
+---
+- hosts: demo
+  tasks:
+  - name: copy module
+    copy: src=test.conf dest=/tmp/test.conf
+
+---
+- hosts: demo
+  tasks:
+  - name: Template
+    template: src=test.conf.j2 dest=/tmp/test.conf
+
+$ vi test.conf.j2
+YOU CAN SEE ME {{myname}}
+
+$ vi test.conf.j2
+{% for i in range(3)%}
+  hello {{myname}} - {{i}}
+{% endfor %}
+
+$ ansible-playbook jinga.yml --extra-vars "myname=ADAM"
+===============
+---
+- hosts: demo
+  vars:
+    mylist: ['adam', 'm' ,'devops']
+  tasks:
+    - name: Ansible Template Example
+      template:
+        src: test.conf.j2
+        dest: /tmp/testfile
+
+$ vi test.conf.j2
+{% for item in mylist %}
+  {{ item }}
+{% endfor %}
+===============TAGS======
+---
+- hosts: demo
+  tasks:
+  - name: Print Sanjot
+    command: echo Sanjot
+    tags:
+     - sanjot
+     - group1
+  - name: Print Prabhu
+    command: echo Prabhu
+    tags:
+     - prabhu
+     - group1
+  - name: Print Robin
+    command: echo Robin
+    tags:
+     - robin
+     - group2
+  - name: Print Rakshita
+    command: echo Rakshita
+    tags:
+     - rakshita
+     - group1
+  - name: Print Balkar
+    command: echo Balkar
+    tags:
+     - balkar
+     - group2
+
+$ ansible-playbook tags.yml --tags sanjot --tags prabhu
+$ ansible-playbook tags.yml --tags group1
+$ ansible-playbook tags.yml --skip-tags group2
+======================WAIT_FOR===============
+---
+- hosts: demo
+  become: yes
+  tasks:
+  - name: wait for the service to start listening on port 80
+    wait_for:
+     port: 80
+     state: started
+     timeout: 300
+ - name: wait until the file is present before continuing
+   wait_for:
+    path: /tmp/dummy
+    search_regex: "hi adam"
+    delay: 10
+    timeout: 30
+  - name: EOT
+    command: echo EOT
+=========================VAULT=======
+$ ansible-vault encrypt tags.yml
+$ ansible-playbook tags.yml --ask-vault-pass
+$ ansible-vault edit tags.yml
+$ ansible-vault decrypt tags.yml
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+==================ROLES=============
+$ touch master.yml
+$ mkdir roles
+$ cd roles
+$ mkdir dev    # dev is our role name
+$ cd dev
+$ mkdir tasks vars handlers   # a folder for each section
+$ vi tasks/main.yml
+- name: Print name
+  command: echo {{myname}}
+- name: EOT
+  command: echo EOT
+
+$ vi vars/main.yml
+myname: ADAM
+
+$ vi handlers/main.yml
+- name: handler
+  command: echo handler
+
+$ vi master.yml
+---
+- hosts: demo
+  roles:
+    - { role: dev, when: ansible_os_family == "RedHat" }
+    - { role: test, when: ansible_os_family == "Debian" }
+
+---
+- hosts: demo
+  pre_tasks:
+  - name: PRETASK
+    command: echo pretask
+  roles:
+  - dev           # call dev role
+  post_tasks:
+  - name: POSTTASK
+    command: echo posttask
+=================PASSWORDLESS SSH===========
+# Goto controller server & run as ubuntu
+$ ssh-keygen -t rsa
+* Take the content of ~/.ssh/id_rsa.pub (as ubuntu user) from controller & put it in ~/.ssh/authorized_keys on node as ubuntu user
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Assignment 3:
+------------
+* Develop a terraform/Ansible modules to setup Jenkins Master/Slave, which should take parameters - AMI, Type, Key
+ - If its Jenkins Master
+  1. Create server
+  2. Install JDK, set key, update repo, install Jenkins (Develop Ansible Playbook)
+  3. Generate SSH Keys
+ - If its Jenkins Slave
+  1. Create server
+  2. Install JDK
+  3. Copy the SSH public key from Jenkins Master
+
+--------SETUP JENKINS MASTER---------
+- Install JDK 8
+$ apt update
+$ apt install -y openjdk-8-jdk
+
+- Add the repository key to the system:
+$ wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+
+- Append the Debian package repository:
+$ sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > \
+    /etc/apt/sources.list.d/jenkins.list'
+
+- Install Jenkins Package
+$ apt update
+$ apt install -y jenkins
+
+- Status of Jenkins
+$ systemctl status jenkins
+
+- Generate SSH Key
+$ ssh-keygen -t rsa
+
+------ SETUP JENKINS SLAVE----
+- Install JDK 8
+$ apt update
+$ apt install -y openjdk-8-jdk
+
+- Setup Passwordless SSH between Jenkins Master & Slave
+Take the content of ~/.ssh/id_rsa.pub (as ubuntu user) from master
+Put it in ~/.ssh/authorized_keys on slave as ubuntu user
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Jenkinsfile
+===========
+pipeline { // this is a comment
+
+ stages {
+  stage('name') {
+    agent { }
+    steps {}
+  }
+  stage('name') {
+    agent { }
+    steps {}
+  }
+ }
+
+}
+-------------------
+pipeline {
+    agent any
+    stages {
+        stage('Stage1') {
+            steps {
+                echo 'First Stage'
+            }
+        }
+   }
+}
+------------------
+pipeline {
+    agent { label 'demo' }
+    stages {
+        stage('Stage1') {
+            steps {
+                echo 'First Stage'
+            }
+        }
+        stage('Stage2') {
+            steps {
+                echo 'Second Stage'
+            }
+        }
+    }
+}
+------------------
+pipeline {
+    agent none
+    stages {
+        stage('Stage1') {
+            agent { label 'demo' }
+            steps {
+                echo 'First Stage'
+            }
+        }
+        stage('Stage2') {
+            agent any
+            steps {
+                echo 'Second Stage'
+            }
+        }
+    }
+}
+--------------------
+pipeline {
+    agent none
+    stages {
+        stage('Stage1') {
+            agent {
+                node {
+                    label 'demo'        
+                    customWorkspace '/tmp'
+                }
+            }
+            steps {
+                echo 'First Stage'
+            }
+        }
+        stage('Stage2') {
+            agent any
+            steps {
+                echo 'Second Stage'
+            }
+        }
+    }
+}
+----------------------
+pipeline {
+    agent { label 'demo' }
+    environment {
+        MYNAME = 'Adam'
+    }
+    stages {
+        stage('Stage1') {
+            steps {
+                sh "echo 'Your name: $MYNAME'"
+            }
+        }
+        stage('Stage2') {
+            steps {
+                echo env.MYNAME
+            }
+        }
+    }
+}
+-------------------
+pipeline {
+    agent { label 'demo' }
+    environment {
+        VARVAL = 'global'
+    }
+    stages {
+        stage('Stage1') {
+            environment {
+                VARVAL = 'local'
+            }
+            steps {
+                sh "echo 'Your name: $VARVAL'"
+            }
+        }
+        stage('Stage2') {
+            steps {
+                echo env.VARVAL
+            }
+        }
+    }
+}
+---------------------
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Adam', description: 'Who are you?')
+
+        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+
+        booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+
+        choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
+
+        password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
+       
+        file(name: "file.properties", description: "Choose a file to upload")
+    }
+    stages {
+        stage('Example') {
+            steps {
+                echo "Hello ${params.PERSON}"
+
+                echo "Biography: ${params.BIOGRAPHY}"
+
+                echo "Toggle: ${params.TOGGLE}"
+
+                echo "Choice: ${params.CHOICE}"
+
+                echo "Password: ${params.PASSWORD}"
+            }
+        }
+    }
+}
+-------------------
+pipeline {
+    agent { label 'demo' }
+    options {
+   buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+    stages {
+        stage('Stage1') {
+            steps {
+                echo 'First Stage'
+            }
+        }
+   }
+}
+--------------------
+pipeline {
+    agent { label 'demo' }
+    options {
+              retry(3)
+    }
+    stages {
+        stage('stage1') {
+           steps {
+              sh 'echo hello'
+           }
+        }
+        stage('Stage2') {
+            steps {
+                sh 'sleep 10; exit 1'
+            }
+        }
+     }
+}
+---------------------
+pipeline {
+    agent { label 'demo' }
+    options {
+          timestamps()
+          timeout(time: 15, unit: 'SECONDS')
+          disableConcurrentBuilds()
+    }
+    stages {
+        stage('Stage1') {
+            steps {
+                sh 'sleep 10'
+            }
+        }
+    }
+}
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----------------------
+pipeline {
+    agent { label 'demo' }
+    triggers {
+        cron('* * * * *')
+    }
+    stages {
+        stage('Stage1') {
+            steps {
+                echo 'test'
+            }
+        }
+    }
+}
+-----------------------
+pipeline {
+    agent { label 'demo' }
+    triggers {
+        upstream(upstreamProjects: 'FirstJob', threshold: hudson.model.Result.SUCCESS)
+    }
+    stages {
+        stage('Stage1') {
+            steps {
+                echo 'test'
+            }
+        }
+        stage('git') {
+            steps {
+git changelog: false, credentialsId: 'gitlabCred', poll: false, url: 'https://gitlab.com/wezvatechprojects/Ansible.git'
+            }
+        }
+    }
+}
+----------------------
+pipeline {
+    agent { label 'demo' }
+    stages {
+        stage('Calling FirstJob') {
+            steps {
+                echo " == Calling FirstJob =="
+                build job: 'FirstJob', wait: false
+                echo " == Completed FirstJob =="
+             }
+        }
+        stage('Stage2') {
+            steps {
+                echo 'Testing'
+                sh 'sleep 30'
+            }
+        }
+    }
+}
+-------------------
+pipeline {
+    agent { label 'demo' }
+    stages {
+        stage('mail') {
+            steps {
+               mail bcc: '', body: 'Hi Adam', cc: '', from: '', replyTo: '', subject: 'Test Mail', to: 'scmlearningcentre@gmail.com'
+             }
+        }
+   }
+}
+-------------------
+pipeline {
+    agent { label 'demo' }
+    stages {
+        stage('Stage1') {
+            steps {
+                  sh 'touch FILE1'
+                  dir('/tmp/jenkins') {
+                       sh 'touch FILENEW'
+                  }
+                  sh 'touch FILE2'
+            }
+        }
+    }
+}
+----------------
+pipeline {
+    agent any
+    stages {
+        stage('Stage1') {
+            steps {
+             catchError(buildResult: 'UNSTABLE', message: 'ERROR', stageResult: 'FAILURE') {
+                sh "exit 1"
+             }
+            }
+        }
+       stage('Stage2') {
+            steps {
+                  echo 'Running Stage1 for production'
+            }
+        }
+    }
+}
+---------------
+pipeline {
+    agent any
+    environment { DEPLOY_TO = 'qa'}
+    stages {
+        stage('Stage1') {
+            when {
+                             environment name: 'DEPLOY_TO', value: 'qa'
+   }
+            steps {
+                  echo 'Running Stage1 for QA'
+            }
+        }
+       stage('Stage2') {
+            when {
+   environment name: 'DEPLOY_TO', value: 'production'
+   }
+            steps {
+                  echo 'Running Stage1 for production'
+            }
+        }
+    }
+}
+-------------
+pipeline {
+    agent any
+    parameters {
+        booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+    }
+    stages {
+        stage('Stage1') {
+            when {
+   expression { return params.TOGGLE }
+}
+            steps {
+                  echo 'Testing'
+            }
+        }
+    }
+}
+-------------
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Adam', description: 'Who are you?')
+    }
+    stages {
+        stage('Stage1') {
+            when { equals expected: 'adam' , actual: params.PERSON }
+            steps {
+                  echo 'Hi Adam !!'
+            }
+        }
+    }
+}
+-------------
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Adam', description: 'Who are you?')
+    }
+    stages {
+        stage('Stage1') {
+            when { not { equals expected: 'adam' , actual: params.PERSON }}
+            steps {
+                  echo 'Hi Students !!'
+            }
+        }
+    }
+}
+----------
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Adam', description: 'Who are you?')
+booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+    }
+    stages {
+        stage('Stage1') {
+            when {
+allOf {
+       equals expected: 'adam' , actual: params.PERSON
+expression { return params.TOGGLE }
+}
+   }
+            steps {
+                  echo 'Hi Adam !!'
+            }
+        }
+    }
+}
+-----------
+pipeline {
+    agent any
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Adam', description: 'Who are you?')
+booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+    }
+    stages {
+        stage('Stage1') {
+            when {
+   anyOf {
+       equals expected: 'adam' , actual: params.PERSON
+expression { return params.TOGGLE }
+           }
+   }
+            steps {
+                  echo 'Hi Adam !!'
+            }
+        }
+    }
+}
+----------
+pipeline {
+    agent any
+    stages {
+        stage('Stage 1') {
+            steps { sh 'sleep 10' }
+        }
+        stage('Stage 2') {
+            steps { sh 'sleep 10' }
+        }
+        stage('Stage 3') {
+         parallel {
+            stage('Parallel 3.1') {
+                 steps { sh 'sleep 10' }  
+            }
+            stage('Parallel 3.2') {
+                 steps { sh 'sleep 10' }
+            }
+         }
+        }
+    }
+}
+-----------
+pipeline {
+    agent any
+    stages {
+        stage('Example1') {
+           steps { echo 'Hello Students' }
+        }
+        stage('Example2') {
+           steps { echo 'Hello ADAM' }
+        }
+    }
+    post {
+        always {
+            echo 'Hello again!'
+        }
+    }
+}
+-----------
+pipeline {
+    agent any
+    stages {
+        stage('Stage1') {
+            steps { echo 'Stage 1' }
+            post {
+                always { echo 'Hello again!' }
+            }
+        }
+  stage('Stage2') {
+            steps { echo 'Stage 2' }
+            post {
+                always { echo 'Hello again!' }
+            }
+        }
+    }
+}
+
+======DEMO CI PIPELINE=======
+pipeline {
+  agent none
+  options {
+     timeout(time: 1, unit: 'HOURS')
+  }
+  parameters {
+    booleanParam(name: 'UNITTEST', defaultValue: true, description: 'Enable UnitTests ?')
+  }
+ stages {
+  stage('Checkout')
+  {
+    agent { label 'demo' }
+    steps {
+     git credentialsId: 'GitlabCred', url: 'https://gitlab.com/scmlearningcentre/wezvatech-cicd.git'
+    }
+  }
+
+  stage('PreCheck')
+  {
+   agent { label 'demo' }
+   when {
+     anyOf {
+           changeset "samplejar/**"
+           changeset "samplewar/**"
+     }
+   }
+   steps {
+       script {
+          env.BUILDME = "yes" // Set env variable to enable further Build Stages
+       }
+   }
+  }
+  stage('Build')
+  {
+    when {environment name: 'BUILDME', value: 'yes'}
+    agent { label 'demo' }
+    steps {
+        script {
+   if (params.UNITTEST) {
+ unitstr = ""
+   } else {
+ unitstr = "-Dmaven.test.skip=true"
+   }
+
+            echo "Building Jar Component ..."
+   dir ("./samplejar") {
+     sh "mvn clean package ${unitstr}"
+   }
+
+            echo "Building War Component ..."
+   dir ("./samplewar") {
+             sh "mvn clean package "
+   }
+}
+    }
+   }
+
+ }
+}
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+===============DEMO CI Pipeline====================
+pipeline {
+  agent none
+  options {
+     timeout(time: 1, unit: 'HOURS')
+  }
+  parameters {
+    booleanParam(name: 'UNITTEST', defaultValue: true, description: 'Enable UnitTests ?')
+    booleanParam(name: 'CODEANALYSIS', defaultValue: true, description: 'Enable CODE-ANALYSIS ?')
+
+  }
+ stages {
+  stage('Checkout')
+  {
+    agent { label 'demo' }
+    steps {
+     git credentialsId: 'GitlabCred', url: 'https://gitlab.com/scmlearningcentre/wezvatech-cicd.git'
+    }
+  }
+
+  stage('PreCheck')
+  {
+   agent { label 'demo' }
+   when {
+     anyOf {
+           changeset "samplejar/**"
+           changeset "samplewar/**"
+     }
+   }
+   steps {
+       script {
+          env.BUILDME = "yes" // Set env variable to enable further Build Stages
+       }
+   }
+  }
+  stage('Build')
+  {
+    when {environment name: 'BUILDME', value: 'yes'}
+    agent { label 'demo' }
+    steps {
+        script {
+   if (params.UNITTEST) {
+ unitstr = ""
+   } else {
+ unitstr = "-Dmaven.test.skip=true"
+   }
+
+            echo "Building Jar Component ..."
+   dir ("./samplejar") {
+     sh "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64; mvn clean package ${unitstr}"
+   }
+
+            echo "Building War Component ..."
+   dir ("./samplewar") {
+             sh "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64; mvn clean package "
+   }
+}
+    }
+   }
+  stage('Code Coverage')
+  {
+   agent { label 'demo' }
+   when {
+     allOf {
+         expression { return params.CODEANALYSIS }
+         environment name: 'BUILDME', value: 'yes'
+     }
+   }
+   steps {
+     echo "Running Code Coverage ..."  
+     dir ("./samplejar") {
+sh "mvn org.jacoco:jacoco-maven-plugin:0.5.5.201112152213:prepare-agent"
+     }
+   }
+  }
+
+  stage('SonarQube Analysis')
+  {
+    agent { label 'demo' }
+    when {environment name: 'BUILDME', value: 'yes'}
+    steps{
+     withSonarQubeEnv('demosonarqube') {
+ dir ("./samplejar") {
+             sh 'mvn sonar:sonar'
+ }
+     }
+    }
+  }
+
+ }
+}
+
+Make sure JDK 11 is installed in the Build Server 
+        $ sudo apt install -y openjdk-11-jdk
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+stage("Quality Gate"){
+    when {environment name: 'BUILDME', value: 'yes'}
+    steps{
+script {
+  timeout(time: 10, unit: 'MINUTES') {
+            def qg = waitForQualityGate()
+            if (qg.status != 'OK') {
+              error "Pipeline aborted due to quality gate failure: ${qg.status}"
+            }
+           }
+}
+     }
+   }
+
+  stage('Stage Artifacts')
+  {          
+   agent { label 'demo' }
+   when {environment name: 'BUILDME', value: 'yes'}
+   steps {          
+    script {
+   /* Define the Artifactory Server details */
+        def server = Artifactory.server 'defaultjfrog'
+        def uploadSpec = """{
+            "files": [{
+            "pattern": "samplewar/target/samplewar.war",
+            "target": "DEMOCI"                  
+            }]
+        }"""
+       
+        /* Upload the war to  Artifactory repo */
+        server.upload(uploadSpec)
+    }
+   }
+  }
+
+=======================================
+CI Pipeline:
+ - Triggered on Commit, Gitlab webhook
+ - checkout
+ - validate code
+ - Build & UnitTest
+ - Upload Artifacts to Jfrog
+
+Nightly Build Pipelie:
+ - Triggers on scheduled time i.e 2-3 times/day
+ - checkout
+ - validate code
+ - Build & UnitTest
+ - Code Coverage
+ - Code Analysis
+ - QualityGates
+ - Upload Artifacts to Jfrog
+
+Assignment 4:
+------------
+* Develop a CI Pipeline for feature branches as per your Release strategy
+* Develop a Nightly Pipeline for the same feature branches
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+======================DOCKERFILE==============
+1. Create a container from a Base Image
+2. Inside the container run all the cmds or instructions
+3. Commit the container to generate a new Image
+
+INSTRUCTION  OS-CMD/ARGUMENTS
+-----------  ----------------
+FROM         <BASE-IMAGE>     # creates a temp container in the background
+RUN          <OS-CMD>         # executes the cmds inside the temp container
+CMD          ["executable","arg1","arg2"]  # gives the default startup cmd, however allows users cmd to overwrite
+ENTRYPOINT   ["executable","arg1","arg2"]  # gives the default startup cmd, however it allows users cmd as a option to default cmd
+COPY         <HOST-SRC> <IMAGE-DEST> # Copies a single file
+ADD          <HOST-SRC> <IMAGE-DEST> # Extracts a archive
+ENV          <VARIABLENAME> <VALUE>
+USER         <USERNAME>
+WORKDIR      <PATH>
+EXPOSE       <PORT>
+
+example:
+-------
+FROM centos
+RUN yum -y update
+RUN yum install -y vim
+RUN touch /tmp/test
+CMD ["/bin/bash"]
+COPY dummyfile /tmp/dummyfile
+ADD  demo.tar  /tmp
+ENV JAVA_HOME /opt/jdk1.8/java
+USER nobody
+WORKDIR /tmp
+EXPOSE 8081
+EXPOSE 8082
+
+$ docker build -t <Imagename> . -f <Dockerfile>
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+$ docker login <REGISTRY>
+$ docker tag <LocalImage>:<Tag> <REGISTRY>/<REPO>:<TAG>
+$ docker push <REGISTRY>/<REPO>:<TAG>
+
+$ docker tag myimg:latest adamtravis/myimg:1
+$ docker push adamtravis/myimg:1
+
+Jenkins plugin needed for Docker Base Image Pipeline:
+1. Docker Pipeline
+2. Amazon ECR Plugin
+3. Pipeline: AWS steps
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Install Docker
+$  sudo apt update && apt -y install docker.io
+
+ Install kubectl
+$  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl &&   chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
+
+ Install Minikube
+$  curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+
+ Start Minikube
+$  apt install conntrack
+$  minikube start --vm-driver=none
+$  minikube status
+==============================================
+$ kubectl get nodes
+$ kubectl describe node <nodename>
+==============================================pod1.yml
+kind: Pod                              # Object Type
+apiVersion: v1                     # API version
+metadata:                            # Set of data which describes the Object
+  name: testpod                  # Name of the Object
+spec:                                     # Data which describes the state of the Object
+  containers:                        # Data which describes the Container details
+    - name: c00                     # Name of the Container
+      image: ubuntu              # Base Image which is used to create Container
+      command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+  restartPolicy: Never         # Defaults to Always
+
+$ kubectl apply -f pod1.yml
+$ kubectl get pods
+$ kubectl get pods -o wide
+$ kubectl delete -f pod1.yml
+$ kubectl describe pod testpod
+$ kubectl logs -f testpod
+$ kubectl exec testpod -- ps -ef
+$ kubectl exec testpod -it -- /bin/bash
+--------------------pod2.yml----------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: testpod2
+spec:
+  containers:
+    - name: c00
+      image: ubuntu
+      command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 10 ; done"]
+    - name: c01
+      image: ubuntu
+      command: ["/bin/bash", "-c", "while true; do echo Hello-Students; sleep 10 ; done"]
+
+$ kubectl logs -f testpod2 -c c00
+$ kubectl logs -f testpod2 -c c01
+$ kubectl exec testpod2 -it -c c00 -- /bin/bash
+-------------------pod3.yml-------------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: environments
+spec:
+  containers:
+    - name: c00
+      image: ubuntu
+      command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+      env:                                   # List of environment variables to be used inside the pod
+      - name: ORG
+        value: WEZVATECH
+      - name: SESSION
+        value: PODS
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-------------pod4.yml--------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: portmap
+spec:
+  containers:
+    - name: c00
+      image: httpd
+      ports:
+       - containerPort: 80                        
+-------------pod5.yml----------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: labelspod
+  labels:                                                    # Specifies the Label details under it
+    myname: ADAM
+    myorg: WEZVATECH
+spec:
+    containers:
+       - name: c00
+         image: ubuntu
+         command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+
+$ kubectl get pods --show-labels
+$ kubectl get pods -l myname=ADAM
+$ kubectl label pods portmap myname=student
+$ kubectl get pods -l myname!=ADAM
+$ kubectl get pods -l 'myname in (ADAM, student)'
+$ kubectl get pods -l 'myname notin (ADAM, student)'
+$ kubectl delete pod -l 'myname in (ADAM, student)'
+----------------------pod6.yml--------------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: nodelabels
+  labels:
+    env: dev
+spec:
+    containers:
+       - name: c00
+         image: ubuntu
+         command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+    nodeSelector:                                           # specifies which node to run the pod
+       mynode: demonode
+
+$ kubectl label nodes ip-172-31-12-129 mynode=demonode
+---------------------rs.yml----------
+kind: ReplicaSet                                      # Defines the object to be ReplicaSet
+apiVersion: apps/v1                               # Replicaset is not available on v1
+metadata:
+  name: myrs
+spec:
+  replicas: 2                                              # this element defines the desired number of pods
+  selector:                                                # tells the controller which pods to watch/belong to this Replication Set
+    matchLabels:
+     myname: adam
+  template:                                              # template element defines a template to launch a new pod
+    metadata:
+      name: testpod7
+      labels:                                                # selector values need to match the labels values specified in the pod template
+        myname: adam
+    spec:
+     containers:
+       - name: c00
+         image: ubuntu
+         command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+
+$ kubectl get rs
+$ kubectl describe rs myrs
+
+--------------deploy.yml-----
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+   name: mydeployments
+spec:
+   replicas: 2
+   selector:      # tells the controller which pods to watch/belong to
+    matchLabels:
+     name: deployment
+   template:
+     metadata:
+       name: testpod8
+       labels:
+         name: deployment
+     spec:
+      containers:
+        - name: c00
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5; done"]
+
+$ kubectl get deploy
+$ kubectl describe deploy mydeployments
+$ kubectl rollout status deployment/mydeployments
+$ kubectl rollout history deployment/mydeployments
+$ kubectl rollout undo deploy/mydeployments --to-revision=1
+----------------pod7.yml------------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: testpod
+spec:
+  containers:
+    - name: c00
+      image: ubuntu
+      command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+    - name: c01
+      image: httpd
+      ports:
+       - containerPort: 80
+---------------pod8.yml----------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: testpod4
+spec:
+  containers:
+    - name: c01
+      image: nginx
+      ports:
+       - containerPort: 80
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+--------------------------svc.yml--------
+kind: Service                             # Defines to create Service type Object
+apiVersion: v1
+metadata:
+  name: demoservice
+spec:
+  ports:
+    - port: 80                               # Containers port exposed
+      targetPort: 80                     # Pods port
+  selector:
+    myvalue: demo                    # Apply this service to any pods which has the specific label
+  type: ClusterIP                      
+
+$ kubectl get svc
+$ kubectl describe svc demoservice
+---------------------
+kind: Service                             # Defines to create Service type Object
+apiVersion: v1
+metadata:
+  name: demoservice
+spec:
+  ports:
+    - port: 80                               # Containers port exposed
+      targetPort: 80                     # Pods port
+  selector:
+    myvalue: demo                    # Apply this service to any pods which has the specific label
+  type: NodePort
+
+-------------------emptydir.yml----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myvolemptydir
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "sleep 10000"]
+    volumeMounts:                                    # Mount definition inside the container
+      - name: xchange
+        mountPath: "/tmp/xchange"          # Path inside the container to share
+  - name: c2
+    image: centos
+    command: ["/bin/bash", "-c", "sleep 10000"]
+    volumeMounts:
+      - name: xchange
+        mountPath: "/tmp/data"
+  volumes:                                                      # Definition for host
+  - name: xchange
+    emptyDir: {}
+---------------------hostpath.yml-------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myvolhostpath
+spec:
+  containers:
+  - image: centos
+    name: testc
+    command: ["/bin/bash", "-c", "sleep 10000"]
+    volumeMounts:
+    - mountPath: /tmp/hostpath
+      name: testvolume
+  volumes:
+  - name: testvolume
+    hostPath:
+      path: /tmp/data    
+-----------------------------pv.yml-------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: myebsvol
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  awsElasticBlockStore:
+    volumeID: vol-0a742cfe33fb198ae
+    fsType: ext4
+
+$ kubectl get pv
+$ kubectl describe pv myebsvol
+----------------------------pvc.yml-------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: myebsvolclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+$ kubectl get pvc
+$ kubectl describe pvc myebsvolclaim
+---------------------------------------deploypv.yml----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pvdeploy
+spec:
+  replicas: 1
+  selector:      # tells the controller which pods to watch/belong to
+    matchLabels:
+     app: mypv
+  template:
+    metadata:
+      labels:
+        app: mypv
+    spec:
+      containers:
+      - name: shell
+        image: centos
+        command: ["bin/bash", "-c", "sleep 10000"]
+        volumeMounts:
+        - name: mypd
+          mountPath: "/tmp/persistent"
+      volumes:
+        - name: mypd
+          persistentVolumeClaim:
+            claimName: myebsvolclaim
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-------------------livenessprobe.yml------------
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: mylivenessprobe
+spec:
+  containers:
+  - name: liveness
+    image: ubuntu
+    args:
+    - /bin/sh
+    - -c
+    - touch /tmp/healthy; sleep 1000
+    livenessProbe:                                           # define the health check
+      exec:
+        command:                                              # command to run periodically
+        - ls
+        - /tmp/healthy
+      initialDelaySeconds: 30                           # Wait for the specified time before it runs the first probe
+      periodSeconds: 5                                   # Run the above command every 5 sec
+      timeoutSeconds: 30                              
+----------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: mylivenessprobeurl
+spec:
+  containers:
+    - name: c00
+      image: httpd
+      ports:
+       - containerPort: 80
+      livenessProbe:
+       initialDelaySeconds: 5
+       periodSeconds: 5
+       httpGet:                            # HTTP URL to check periodically
+        path: /                              # Endpoint to check inside the container / means http://localhost/
+        port: 80                  
+--------------------------------
+kind: Pod
+apiVersion: v1
+metadata:
+  name: testservice
+  labels:
+    myvalue: demo
+spec:
+  containers:
+    - name: c00
+      image: httpd
+      ports:
+       - containerPort: 80
+      livenessProbe:
+       initialDelaySeconds: 2
+       periodSeconds: 5
+       httpGet:
+        path: /
+        port: 80
+      readinessProbe:                                           # Healthcheck for readiness
+       initialDelaySeconds: 10
+       httpGet:
+        path: /
+        port: 80
+--------------------------------
+$ echo "root" > username.txt; echo "password" > password.txt
+$ kubectl create secret generic mysecret --from-file=username.txt --from-file=password.txt
+$ kubectl get secret
+$ kubectl describe secret mysecret
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myvolsecret
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+    volumeMounts:
+      - name: testsecret
+        mountPath: "/tmp/mysecrets"   # the secret files will be mounted as ReadOnly by default here
+  volumes:
+  - name: testsecret
+    secret:
+       secretName: mysecret  
+-----------------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myenvsecret
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+    env:
+    - name: MYENVUSER          # env name in which value of the key is stored
+      valueFrom:
+        secretKeyRef:
+          name: mysecret       # name of the secret created
+          key: username.txt    # name of the key
+
+--------------------------------
+$ kubectl create configmap mymap --from-file=sample.conf
+$ kubectl get cm
+$ kubectl describe configmaps mymap
+$ kubectl get configmap mymap -o yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myvolconfig
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+    volumeMounts:
+      - name: testconfigmap
+        mountPath: "/tmp/config"   # the config files will be mounted as ReadOnly by default here
+  volumes:
+  - name: testconfigmap
+    configMap:
+       name: mymap   # this should match the config map name created in the first step
+       items:
+       - key: sample.conf # the name of the file used during creating the map
+         path: sample.conf
+-------------------------namespace------------
+apiVersion: v1
+kind: Namespace
+metadata:
+   name: demo
+   labels:
+     name: development
+
+$ kubectl get ns
+$ kubectl get pods -n demo
+$ kubectl apply -f pod1.yml -n demo
+$ kubectl delete -f pod1.yml -n demo
+$ kubectl config set-context $(kubectl config current-context) --namespace=demo
+$ kubectl config view | grep namespace:
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resources
+spec:
+  containers:
+  - name: resource
+    image: centos
+    command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+    resources:                                            # Describes the type of resources to be used
+      requests:
+        memory: "64Mi" # A mebibyte is 1,048,576 bytes, ex: 64Mi
+        cpu: "100m"          # CPU core split into 1000 units (milli = 1000), ex: 100m
+      limits:
+        memory: "200Mi" # ex: 128Mi
+        cpu: "200m"  # ex: 200m
+----------resourcequota.yml--------
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+   name: myquota
+spec:
+  hard:
+    limits.cpu: "400m"
+    limits.memory: "400Mi"
+    requests.cpu: "200m"
+    requests.memory: "200Mi"
+----------
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: deployments
+spec:
+  replicas: 3
+  selector:      
+    matchLabels:
+     objtype: deployment
+  template:
+    metadata:
+      name: testpod8
+      labels:
+        objtype: deployment
+    spec:
+     containers:
+       - name: c00
+         image: ubuntu
+         command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 5 ; done"]
+         resources:
+            requests:
+              cpu: "200m"
+------limitrange---------
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-limit-range
+spec:
+  limits:
+  - default:
+      cpu: 1
+    defaultRequest:
+      cpu: 0.5
+    type: Container
+--------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: default-cpu-demo-2
+spec:
+  containers:
+  - name: default-cpu-demo-2-ctr
+    image: nginx
+    resources:
+      limits:
+        cpu: "1"
+----------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: default-cpu-demo-3
+spec:
+  containers:
+  - name: default-cpu-demo-3-ctr
+    image: nginx
+    resources:
+      requests:
+        cpu: "0.75"
+-------------------------
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-min-max-demo-lr
+spec:
+  limits:
+  - max:
+      memory: 1Gi
+    min:
+      memory: 500Mi
+    type: Container
+---------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: constraints-mem-demo
+spec:
+  containers:
+  - name: constraints-mem-demo-ctr
+    image: nginx
+    resources:
+      limits:
+        memory: "800Mi"
+      requests:
+        memory: "600Mi"
+------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: constraints-mem-demo-2
+spec:
+  containers:
+  - name: constraints-mem-demo-2-ctr
+    image: nginx
+    resources:
+      limits:
+        memory: "1.5Gi"
+      requests:
+        memory: "800Mi"
+----------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: constraints-mem-demo-3
+spec:
+  containers:
+  - name: constraints-mem-demo-3-ctr
+    image: nginx
+    resources:
+      limits:
+        memory: "800Mi"
+      requests:
+        memory: "100Mi"
+-------daemonset---------------
+apiVersion: apps/v1
+kind: DaemonSet      # Type of Object
+metadata:
+  name: demodaemonset
+  namespace: default
+  labels:
+    env: demo
+spec:
+  selector:
+    matchLabels:
+      env: demo
+  template:
+    metadata:
+      labels:
+        env: demo
+    spec:
+      containers:
+      - name: demoset
+        image: ubuntu
+        command: ["/bin/bash", "-c", "while true; do echo Hello-Adam; sleep 8 ; done"]
+
+Daemonset
+---------
+* Use this when you need your pod to run in each and every machine in the cluster
+* we do not give the replicas
+* we cannot scale the replicas
+-------------STATEFULSET------------------------
+
+# Creating Statefulset
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: webapp
+spec:
+  serviceName: "nginx"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: k8s.gcr.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+# Headless Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+
+
+$ kubectl get sc
+$ kubectl get sts
+$ kubectl exec webapp-0 -- sh -c 'echo POD0 > /usr/share/nginx/html/index.html'
+$ kubectl exec webapp-1 -- sh -c 'echo POD1 > /usr/share/nginx/html/index.html'
+$ kubectl exec webapp-1 -- curl webapp-0.nginx
+$ kubectl exec webapp-0 -- curl webapp-1.nginx
+$ kubectl delete pvc -l app=nginx
+
+ # podname.headless-servicename
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$ kubectl create namespace argocd
+$ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+$ kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}’
+
+For version 1.8.0 or older:
+$ ARGO_PWD=`kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server -o name | cut -d'/' -f 2`
+
+For version 1.9 or later:
+$ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-------------------HELM-------------------
+$ curl https://get.helm.sh/helm-v3.2.3-linux-amd64.tar.gz > helm.tar.gz
+$ tar xzvf helm.tar.gz
+$ mv linux-amd64/helm /usr/local/bin
+
+$ helm repo list
+$ helm repo add stable https://charts.helm.sh/stable
+$ helm search repo jenkins
+$ helm show values stable/tomcat
+$ helm show readme stable/tomcat
+$ helm install testchart  stable/tomcat
+$ helm install testchart stable/tomcat --set service.type=NodePort
+$ helm install testchart  stable/tomcat --version 0.4.0
+$ helm get manifest testchart
+$ helm get values testchart
+$ helm list
+$ helm delete testchart
+$ helm upgrade testchart stable/tomcat
+$ helm rollback testchart 1
+$ helm history testchart
+$ helm pull --untar stable/tomcat
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$ helm plugin install https://github.com/hypnoglow/helm-s3.git
+$ helm s3 init s3://wezva-helm-charts/charts
+$ helm repo add my-charts s3://wezva-helm-charts/charts
+$ helm package --version 1.0 .
+$ helm s3 push ./wezvawebapp-1.0.tgz my-charts
+
+* Trigger a pipeline from a merge webhook
+* Clone the helm source repo
+* Copy your conf files
+* Generate Helm package & Push
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Create a user for Prometheus on your system
+$ useradd -rs /bin/false prometheus
+ 
+Create a new folder and a new configuration file for Prometheus
+$ mkdir /etc/prometheus
+$ touch /etc/prometheus/prometheus.yml
+
+Create a data folder for Prometheus
+$ mkdir -p /data/prometheus
+$ chown prometheus:prometheus /data/prometheus /etc/prometheus/*
+
+$ vi /etc/prometheus/prometheus.yml
+global:
+  scrape_interval: 5s
+  evaluation_interval: 1m
+# A scrape configuration scraping a Node Exporter and the Prometheus server itself
+scrape_configs:
+  # Scrape Prometheus itself every 10 seconds.
+  - job_name: 'prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:9090']
+
+Get the userid for running Prometheus
+$ cat /etc/passwd | grep prometheus
+
+
+Create the Prometheus container
+$ docker run --name myprom -d -p 9090:9090 --user 997:997 --net=host -v /etc/prometheus:/etc/prometheus -v /data/prometheus:/data/prometheus prom/prometheus --config.file="/etc/prometheus/prometheus.yml" --storage.tsdb.path="/data/prometheus"
+
+Create a Grafana container
+$ docker run --name grafana -d -p 3000:3000 --net=host grafana/grafana
+
+Create a user for Node Exporter
+$ useradd -rs /bin/false node_exporter
+$ cat /etc/passwd | grep node_exporter
+
+Creating Node exporter container
+$ docker run --name exporter -d -p 9100:9100 --user 997:997 -v "/:/hostfs" --net="host" prom/node-exporter --path.rootfs=/hostfs
+ 
+-----
+$ vi /etc/prometheus/prometheus.yml
+ - job_name: 'BuildMachine01'
+   static_configs:
+   - targets: ['172.31.44.44:9100']
+
+Restart Prometheus, get the PID & send SIGHUP signal
+$ ps aux | grep prometheus
+$ kill -HUP <PID>
+------------------------
+Run Cadvisor container to collect container metrics
+$ docker run --name cadvisor -d  -p 8080:8080 -v /:/rootfs:ro -v /var/run:/var/run:rw -v /sys:/sys:ro -v /var/lib/docker/:/var/lib/docker:ro google/cadvisor
+
+Edit /etc/prometheus/prometheus.yml & add a job for Cadvisor:
+- job_name: 'cadvisor'
+  scrape_interval: 5s
+  static_configs:
+   - targets: ['localhost:8080']
+----------------------------------
+Download Java JMX Exporter jar
+$ wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.12.0/jmx_prometheus_javaagent-0.12.0.jar
+
+Create a config file prometheus-jmx-config.yaml to expose all metrics
+---
+startDelaySeconds: 0
+ssl: false
+lowercaseOutputName: false
+lowercaseOutputLabelNames: false
+
+From tomcat:latest Docker Image, copy /usr/local/tomcat/bin/catalina.sh locally and add JVM Parameter to your application
+$ docker run --name test --rm -d tomcat
+$ docker cp test:/usr/local/tomcat/bin/catalina.sh .
+$ vi catalina.sh
+JMX_OPTS="-javaagent:/data/jmx_prometheus_javaagent-0.12.0.jar=8081:/data/prometheus-jmx-config.yaml"
+JAVA_OPTS="$JMX_OPTS $JAVA_OPTS $JSSE_OPTS"
+
+- Create a Dockerfile
+FROM tomcat
+RUN mkdir /data
+COPY catalina.sh /usr/local/tomcat/bin/catalina.sh
+ADD jmx_prometheus_javaagent-0.12.0.jar /data/jmx_prometheus_javaagent-0.12.0.jar
+ADD prometheus-jmx-config.yaml /data/prometheus-jmx-config.yaml
+
+Create a Tomcat container
+$ docker build -t jmxtomcat .
+$ docker run --name jmxtomcat --rm -d -p 8081:8081 jmxtomcat
+
+
+Edit /etc/prometheus/prometheus.yml & add a job for JMX, restart Prometheus
+- job_name: 'JMX'
+  static_configs:
+    - targets: ['172.31.44.44:8081']
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+$ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+$ helm repo update
+
+$ helm pull --untar  prometheus-community/kube-prometheus-stack
+1. Edit kube-prometheus-stack/charts/grafana/values.yaml, set the values under Service key:
+   type: NodePort
+   port: 3000
+2. Edit kube-prometheus-stack/values.yaml, search for "Configuration for Prometheus service" under this set the value of service(s)
+   type: NodePort
+3. Remove charts/kube-state-metrics dir & entry from Charts.yaml
+
+To get password for user "admin"
+$ kubectl get secret | grep grafana
+$ kubectl get secret myprom-grafana -o jsonpath='{.data.admin-password}' | base64 --decode
+===================================EFK ==========================================
+$ git clone https://github.com/cdwv/efk-stack-helm
+$ cd efk-stack-helm
+
+Edit values.yaml, set the below values for rbac & kibana service type:
+rbac:
+  enabled: true
+
+service:   # this is for kibana configuration
+    type: NodePort
+
+Edit Chart.yaml & add below line
+version: 0.0.1
+
+Edit templates/kibana-deployment.yaml & change the apiversion
+apiVersion: apps/v1
+
+$ helm install demoefk .
+
+=========================================HPA=============
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+   name: mydeploy
+spec:
+   replicas: 1
+   selector:
+    matchLabels:
+     name: deployment
+   template:
+     metadata:
+       name: testpod8
+       labels:
+         name: deployment
+     spec:
+      containers:
+        - name: c00
+          image: httpd
+          ports:
+          - containerPort: 80
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
+
+$ helm repo add stable https://charts.helm.sh/stable
+$ helm repo update
+$ helm install metrics-server stable/metrics-server --set args={"--kubelet-insecure-tls=true"}
+$ kubectl top pods or kubectl top nodes
+
+$ kubectl autoscale deployment mydeploy --cpu-percent=20 --min=1 --max=10
+
+To test Increase the load, by running this inside any pod
+    $ apt update
+    $ while true; do wget -q -O- http://localhost; done
+====================
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+   name: mydeploy
+spec:
+   replicas: 1
+   selector:
+    matchLabels:
+     name: deployment
+   template:
+     metadata:
+       name: testpod8
+       labels:
+         name: deployment
+     spec:
+      containers:
+        - name: c00
+          image: httpd
+          ports:
+          - containerPort: 80
+          resources:
+            limits:
+              memory: "200Mi"
+            requests:
+              memory: "100Mi"
+------
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: myhpamem
+spec:
+  maxReplicas: 5
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mydeploy
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageUtilization: 30
+
+To test Increase the memory, by running this inside any pod
+    $ apt update
+    $ apt install -y stress
+    $ stress --vm 1 --vm-bytes 100M
+------------------------------------------------VPA--------------
+Deploy Recommender & Updater component
+$ git clone https://github.com/kubernetes/autoscaler.git
+$ cd autoscaler/vertical-pod-autoscaler/
+$ ./hack/vpa-up.sh
+
+Create VPA Object
+apiVersion: "autoscaling.k8s.io/v1"
+kind: VerticalPodAutoscaler
+metadata:
+  name: myvpa
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: demovpa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demovpa
+spec:
+  selector:
+    matchLabels:
+      scaler: vpa
+  replicas: 2
+  template:
+    metadata:
+      labels:
+       scaler: vpa
+    spec:
+      containers:
+        - name: test
+          image: ubuntu
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - "while true; do timeout 0.5s yes >/dev/null; sleep 0.5s; done"
+--------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Day-Day Task:
+------------
+* Attending a standup meeting i.e Kanban or Scrum
+* Create JIRA/Bugzilla tickets to track all the work
+* Using git client to store the files
+* Code review for peers
+* Developed Terraform configuration files for automating infrastructure
+* Developed Ansible Playbook for automating configuration of Build server, LAMP, Jenkins, Kubernetes cluster
+* Developd Jenkins Pipeline for automating various builds like CI, Nightly, Continious Delivery
+* Setup, Configure & Maintain Jenkins Master, Jenkins Slaves
+* Maintain Jenkins jobs for various build pipeline automation & IAC/CM
+* Developed Dockerfile for BaseImage & AppImage
+* Developed Kubernetes Manifest for Application deployment
+* Developed Helm packages for Microservice deployment
+
+Respobilities:
+-------------
+* Support Continous Development
+  1. Support Gitlab maintenance - group,project,user,branches management
+* Automating Infrastructure Management using IAC
+* Automating Configuration Management of different servers like Dev, QA, Build using Ansible
+* Automate Continuous Integration, Nightly Build pipelines
+* Automate Continuous Delivery & Deployment pipelines
+* Containerization of Products - Develop BaseImage, App Image
+* Automated Kubernetes Deployments using Gitops & Helm
+* Continuous Monitoring of Build server, Deployment server, Kubernetes Cluster, Application, Services
+
+Setup Master on AWS EC2 – Ubuntu (2 cpu):
+Install Docker CE
+$ apt update
+$ apt install -y docker.io
+
+Add the repo for Kubernetes
+$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+$ cat << EOF > /etc/apt/sources.list.d/kubernetes.list
+  deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+Install Kubernetes components
+$ apt update
+$ apt install -y kubelet kubeadm kubectl
+Note:  
+  * Kubeadm/kubelet verion 1.22.0 has issues, kubelet fails to start & kubeadm init will fail
+  * Remove latest version using "apt remove -y kubelet kubeadm kubectl"
+  * Install a stable version like "apt install -y kubeadm=1.21.0-00 kubelet=1.21.0-00 kubectl=1.21.0-00"
+
+Initialize the cluster using the IP range for Flannel.
+$ kubeadm init --pod-network-cidr=10.244.0.0/16
+Copy the kubeadmin join command that is in the output. We will need this later.
+
+Add port obtained from above cmd in the Inbound rules
+
+Exit sudo and copy the admin.conf to your home directory and take ownership as normal user
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster
+$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+====== Worker ========
+Setup node on AWS EC2 – Ubuntu: (t2.micro)
+Install Docker CE
+$ apt update
+$ apt install -y docker.io
+
+Add the repo for Kubernetes
+$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+$ cat << EOF > /etc/apt/sources.list.d/kubernetes.list
+  deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+Install Kubernetes components
+$ apt update
+# Do not run this as 1.22 version has issues # $ apt install -y kubeadm
+$ apt install -y kubeadm=1.21.0-00
+Join the cluster by running the output cmd obtained from ‘kubeadm init’ on master  as root:
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+	

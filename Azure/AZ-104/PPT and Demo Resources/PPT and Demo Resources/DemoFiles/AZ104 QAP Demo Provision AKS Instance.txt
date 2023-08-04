@@ -1,0 +1,30 @@
+# list all subscription
+az account list --output table
+
+# get the current default subscription using show
+az account show --output table
+
+#change to required subscription 
+az account set --subscription "Pay-As-You-Go"
+
+#Install kubectl locally using the az aks install-cli. kubectl is already installed if you use Azure Cloud Shell.
+az aks install-cli
+
+#Configure kubectl to connect to your Kubernetes cluster using the az aks get-credentials command. 
+az aks get-credentials --resource-group rg-kub --name kub100
+
+#Verify the connection to your cluster using kubectl get to return a list of the cluster nodes.
+kubectl get nodes
+
+#In the Cloud Shell, use an editor to create a file named azure-vote.yaml
+code azure-vote.yaml
+
+#Deploy the application using the kubectl apply command and specify the name of your YAML manifest:
+kubectl apply -f azure-vote.yaml
+
+#To monitor progress, use the kubectl get service command with the --watch argument.
+kubectl get service azure-vote-front --watch
+
+
+#Check all services running on nodes
+kubectl get service

@@ -1,0 +1,30 @@
+# get the current default subscription using show
+az account show --output table
+
+#change to required subscription 
+az account set --subscription "Pay-As-You-Go-2"
+
+# connect kubectl with AKS
+az aks get-credentials --resource-group rg-kub --name kub108
+
+#Check all services running on nodes
+kubectl get service
+
+
+#show Nodes
+kubectl get nodes
+
+#show pods
+kubectl get pode
+
+#show pods in wide view
+kubectl get pods -o wide
+
+#manual scale pods
+kubectl scale --replicas=3 deployment/azure-vote-front
+
+#Manual scale nodes
+az aks scale --resource-group rg-kub --name kub108 --node-count 5
+
+#Autoscale
+kubectl autoscale deployment azure-vote-front --cpu-percent=50 --min=3 --max=10

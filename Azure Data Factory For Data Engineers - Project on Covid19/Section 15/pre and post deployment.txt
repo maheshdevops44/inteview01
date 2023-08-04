@@ -1,0 +1,1 @@
+-armTemplate "$(System.DefaultWorkingDirectory)/_dev-ci-cd-adf/maheshdatafactorydev/ARMTemplateForFactory.json" -ResourceGroupName ADF_Training_RG -DataFactoryName maheshdatafactorytest -predeployment $true -deleteDeployment $false

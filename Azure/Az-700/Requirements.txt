@@ -1,0 +1,19 @@
+1. Registration
+2. Register for sec courses
+3. notifiction
+4.View the report card
+5. Modify schedule
+6. authentiction
+7. sign to teach
+8. record the grades
+9. view the student details
+10. maintain student/professor/ course details
+11. cancellation of course
+
+unix os, legacy database -- course catalogue---- read only
+
+new  dtabase
+
+LAN
+
+register student details is sent to billing system--- sub system

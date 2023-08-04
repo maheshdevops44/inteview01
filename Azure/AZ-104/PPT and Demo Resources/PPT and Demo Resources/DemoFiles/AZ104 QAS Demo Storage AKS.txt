@@ -1,0 +1,23 @@
+
+# get the current default subscription using show
+az account show --output table
+
+#change to required subscription 
+az account set --subscription "Pay-As-You-Go"
+
+
+az aks get-credentials --resource-group rg-kub --name kub108
+
+#gets the node resource group for the AKS cluster name in the resource group
+az aks show --resource-group rg-kub --name kub108 --query nodeResourceGroup -o tsv
+
+#create a disk for use with Windows Server containers, add the --os-type windows parameter to correctly format the disk.
+az disk create \
+  --resource-group MC_rg-kub_kub108_southcentralus \
+  --name myAKSDisk \
+  --size-gb 20 \
+  --query id --output tsv
+ 
+ 
+ 
+ 

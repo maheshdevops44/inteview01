@@ -1,0 +1,74 @@
+fileshare
+container
+table
+queue
+
+500 TB
+
+Create a storage account to store up to 500TB of data in the cloud. Use a general-purpose storage account to store object data, use a NoSQL data store, define and use queues for message processing, and set up file shares in the cloud. Use the Blob storage account and the hot or cool access tiers to optimize your costs based on how frequently your object data is accessed.
+
+data replication
+
+LRS--Local redundent storage
+3 copies of your data and stored into diff racks of same DC
+
+ZRS--zone redundent storage
+
+3 copies of your data stored into diff DC of same regions
+
+India-----Che/pune/mumbai
+
+Fileshare:
+----------
+1.service in azure cloud storage
+2.structure data 
+3.hi/du/sc/rel
+4.fileshare can be integrate with local network drive
+5.interaged with FTP server
+6.http/https via SMB---server message block protocal
+7.5 TB data
+
+
+https://mystorage20210914.file.core.windows.net
+
+\\mystorage20210914.file.core.windows.net\myfileshare\
+
+\\mystorage20210914.file.core.windows.net\myfileshare
+
+1.storageaccount name
+2.user name
+3.password(account key/access keys)
+
+https://mystorage20210914.blob.core.windows.net
+
+https://mystorage20210914.table.core.windows.net
+
+https://mystorage20210914.queue.core.windows.net
+
+
+$connectTestResult = Test-NetConnection -ComputerName mystorage20210914.file.core.windows.net -Port 445
+if ($connectTestResult.TcpTestSucceeded) {
+    # Save the password so the drive will persist on reboot
+    cmd.exe /C "cmdkey /add:`"mystorage20210914.file.core.windows.net`" /user:`"localhost\mystorage20210914`" /pass:`"/Fmm0U6/zFI71EDF+YhBXMzVQlS9S+3wM6bwXSni+pBb6JM8+8MQCKCgjteItHcqHmVztpAQpzX0oiHAp6j6Yw==`""
+    # Mount the drive
+    New-PSDrive -Name Z -PSProvider FileSystem -Root "\\mystorage20210914.file.core.windows.net\myfileshare" -Persist
+} else {
+    Write-Error -Message "Unable to reach the Azure storage account via port 445. Check to make sure your organization or ISP is not blocking port 445, or use Azure P2S VPN, Azure S2S VPN, or Express Route to tunnel SMB traffic over a different port."
+}
+
+microsoft 
+
+azure storage explorer
+--free tool
+--microsoft
+--more operation for azure storage account
+yesterday I joined class
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,49 @@
+# Login
+az login \
+    --name <resource-group> \
+    --location <location>
+
+# Create a resource group
+az group create \
+    --name <resource-group> \
+    --location <location>
+
+# Create a storage account
+az storage account create \
+    --name <storage-account> \
+    --resource-group <resource-group> \
+    --location <location> \
+    --sku Standard_ZRS \
+    --encryption-services blob
+
+# Create a container
+az ad signed-in-user show --query objectId -o tsv | az role assignment create \
+    --role "Storage Blob Data Contributor" \
+    --assignee @- \
+    --scope "/subscriptions/<subscription>/resourceGroups/<resource-group>/providers/Microsoft.Storage/storageAccounts/<storage-account>"
+
+az storage container create \
+    --account-name <storage-account> \
+    --name <container> \
+    --auth-mode login
+
+# Uplaod a file
+az storage blob upload \
+    --account-name <storage-account> \
+    --container-name <container> \
+    --name helloworld \
+    --file helloworld \
+    --auth-mode login
+
+
+# List the blobs in a container
+az storage blob list \
+    --account-name <storage-account> \
+    --container-name <container> \
+    --output table \
+    --auth-mode login
+
+# Clean up resources
+az group delete \
+    --name <resource-group> \
+    --no-wait
